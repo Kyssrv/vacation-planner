@@ -3,10 +3,10 @@
 <div class="calendar-container">
     <h1>Календарь отпусков {{ year }}</h1>
 
-    <form method="GET" class="year-selector">
-        <label>Год: </label>
+    <form method="GET" action="{{ url_for('calendar') }}" class="year-selector">
+        <label>Год:</label>
         <input type="number" name="year" value="{{ year }}" min="2000" max="2100" required>
-        <button type="submit">Перейти</button>
+        <button type="submit" class="btn btn-primary">Перейти</button>
     </form>
 
     {% if warning %}
@@ -15,7 +15,7 @@
     </div>
     {% endif %}
 
-    {% if not is_admin %}
+    {% if can_edit %}
     <div class="stats">
         Ваши отпуска в {{ year }} году: {{ taken_count }}/4
     </div>
@@ -23,20 +23,33 @@
 
     <div class="weeks-grid">
         {% for week in weeks %}
-        <div class="week-card {% if week.num in user_vacations %}your-vacation{% elif week.owner %}taken{% endif %}">
-            <div class="week-header">
-                <strong>Неделя {{ week.num }}</strong>
-            </div>
-            <div class="week-dates">
-                {{ week.start.strftime('%d.%m') }}<br>
-                {{ week.end.strftime('%d.%m.%Y') }}
+        <div class="week-card
+                {% if week.num in user_vacations %}your-vacation
+                {% elif week.owner %}taken
+                {% endif %}">
+
+            <div>
+                <div class="week-header">
+                    <strong>Неделя {{ week.num }}</strong>
+                </div>
+
+                <div class="week-dates">
+                    {{ week.start.strftime('%d.%m') }} — {{ week.end.strftime('%d.%m.%Y') }}
+                </div>
             </div>
 
             <div class="week-status">
-                {% if is_past %}
-                <span class="status-past">Просмотр</span>
+                {# --- РЕЖИМ ПРОСМОТРА: прошлые/будущие годы, или админ --- #}
+                {% if not can_edit %}
+                {% if week.owner %}
+                <span class="status-taken">Занято: {{ week.owner | short_name }}</span>
+                {% else %}
+                <span class="status-past">Свободно</span>
+                {% endif %}
 
-                {% elif week.owner and (week.num not in user_vacations) %}
+                {# --- РЕЖИМ РЕДАКТИРОВАНИЯ: только текущий год и не админ --- #}
+                {% else %}
+                {% if week.owner and (week.num not in user_vacations) %}
                 <span class="status-taken">Занято: {{ week.owner | short_name }}</span>
 
                 {% elif week.num in user_vacations %}
@@ -53,8 +66,8 @@
                     <button type="submit" class="btn btn-take">Взять отпуск</button>
                 </form>
                 {% endif %}
+                {% endif %}
             </div>
-
         </div>
         {% endfor %}
     </div>

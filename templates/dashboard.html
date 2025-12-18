@@ -3,34 +3,36 @@
 <div class="admin-container">
     <h1>Админ-панель</h1>
 
-    <div class="admin-section">
-        <h2>Добавить пользователя</h2>
-        <form method="POST" class="admin-form" autocomplete="on">
-            {{ form_user.hidden_tag() }}
-            <div class="form-row">
-                {{ form_user.full_name(class="form-input", placeholder="ФИО") }}
-                {{ form_user.login(class="form-input", placeholder="Логин") }}
-                {{ form_user.password(class="form-input", placeholder="Пароль", autocomplete="new-password") }}
-            </div>
-            {{ form_user.submit(class="btn btn-primary") }}
-        </form>
+    <div class="group-container">
+        <div class="admin-section">
+            <h2 class="form-h2">Добавить пользователя</h2>
+            <form method="POST" class="form admin-form">
+                {{ form_user.hidden_tag() }}
+                <div class="form-row">
+                    {{ form_user.full_name(class="form-input", placeholder="ФИО") }}
+                    {{ form_user.login(class="form-input", placeholder="Логин") }}
+                    {{ form_user.password(class="form-input", placeholder="Пароль") }}
+                </div>
+                {{ form_user.submit(class="btn btn-submit btn-primary") }}
+            </form>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="form-h2">Добавить отпуск</h2>
+            <form method="POST" class=" form admin-form">
+                {{ form_vacation.hidden_tag() }}
+                <div class="form-row">
+                    {{ form_vacation.user_id(class="form-input") }}
+                    {{ form_vacation.year(class="form-input", placeholder="Год") }}
+                    {{ form_vacation.week_num(class="form-input", placeholder="Неделя") }}
+                </div>
+                {{ form_vacation.submit(class="btn btn-submit btn-success") }}
+            </form>
+        </div>
     </div>
 
     <div class="admin-section">
-        <h2>Добавить отпуск</h2>
-        <form method="POST" class="admin-form">
-            {{ form_vacation.hidden_tag() }}
-            <div class="form-row">
-                {{ form_vacation.user_id(class="form-input") }}
-                {{ form_vacation.year(class="form-input", placeholder="Год") }}
-                {{ form_vacation.week_num(class="form-input", placeholder="Неделя") }}
-            </div>
-            {{ form_vacation.submit(class="btn btn-success") }}
-        </form>
-    </div>
-
-    <div class="admin-section">
-        <h2>Пользователи ({{ users|length }})</h2>
+        <h2 class="form-h2">Пользователи</h2>
         <table class="admin-table">
             <tr><th>ID</th><th>ФИО</th><th>Логин</th><th>Админ</th></tr>
             {% for user in users %}
@@ -42,10 +44,20 @@
             </tr>
             {% endfor %}
         </table>
+
+        <div class="pager">
+            <a class="btn btn-primary {% if u_page <= 1 %}btn-disabled{% endif %}"
+               href="{{ url_for('admin_dashboard', u_page=u_page-1, v_page=v_page) }}">Назад</a>
+
+            <span class="pager-info">Страница {{ u_page }} / {{ u_pages }}</span>
+
+            <a class="btn btn-primary {% if u_page >= u_pages %}btn-disabled{% endif %}"
+               href="{{ url_for('admin_dashboard', u_page=u_page+1, v_page=v_page) }}">Вперёд</a>
+        </div>
     </div>
 
     <div class="admin-section">
-        <h2>Отпуска ({{ vacations|length }})</h2>
+        <h2 class="form-h2">Отпуска</h2>
         <table class="admin-table">
             <tr><th>ID</th><th>Пользователь</th><th>Год</th><th>Неделя</th></tr>
             {% for vac in vacations %}
@@ -57,6 +69,16 @@
             </tr>
             {% endfor %}
         </table>
+
+        <div class="pager">
+            <a class="btn btn-primary {% if v_page <= 1 %}btn-disabled{% endif %}"
+               href="{{ url_for('admin_dashboard', u_page=u_page, v_page=v_page-1) }}">Назад</a>
+
+            <span class="pager-info">Страница {{ v_page }} / {{ v_pages }}</span>
+
+            <a class="btn btn-primary {% if v_page >= v_pages %}btn-disabled{% endif %}"
+               href="{{ url_for('admin_dashboard', u_page=u_page, v_page=v_page+1) }}">Вперёд</a>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="auth-container">
-    <h2>Авторизация</h2>
-    <form method="POST" autocomplete="on">
+    <h2 class="form-h2">Авторизация</h2>
+    <form method="POST" autocomplete="on" class="form">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.login.label(class="form-label") }}
