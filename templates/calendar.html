@@ -39,7 +39,6 @@
             </div>
 
             <div class="week-status">
-                {# --- РЕЖИМ ПРОСМОТРА: прошлые/будущие годы, или админ --- #}
                 {% if not can_edit %}
                 {% if week.owner %}
                 <span class="status-taken">Занято: {{ week.owner | short_name }}</span>
@@ -47,7 +46,6 @@
                 <span class="status-past">Свободно</span>
                 {% endif %}
 
-                {# --- РЕЖИМ РЕДАКТИРОВАНИЯ: только текущий год и не админ --- #}
                 {% else %}
                 {% if week.owner and (week.num not in user_vacations) %}
                 <span class="status-taken">Занято: {{ week.owner | short_name }}</span>
