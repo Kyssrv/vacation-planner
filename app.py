@@ -125,7 +125,7 @@ def admin_dashboard():
                 flash('Неделя уже занята')
         return redirect(url_for('admin_dashboard'))
 
-    return render_template('admin.html', users=users, vacations=vacations,
+    return render_template('dashboard.html', users=users, vacations=vacations,
                          form_user=form_user, form_vacation=form_vacation)
 
 @app.route('/calendar/<int:year>')

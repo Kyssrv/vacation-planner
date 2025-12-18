@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="calendar-container">
+    <h1>Календарь отпусков {{ year }}</h1>
+
+    <form method="GET" class="year-selector">
+        <label>Год: </label>
+        <input type="number" name="year" value="{{ year }}" min="2000" max="2030" required>
+        <button type="submit">Перейти</button>
+    </form>
+
+    {% if warning %}
+    <div class="warning">
+        ⚠️ Нужно выбрать еще {{ 4 - taken_count }} недель из {{ 4 }}!
+    </div>
+    {% endif %}
+
+    <div class="stats">
+        Ваши отпуска в {{ year }} году: {{ taken_count }}/4
+    </div>
+
+    <div class="weeks-grid">
+        {% for week in weeks %}
+        <div class="week-card {% if week.num in user_vacations %}your-vacation{% elif week.owner %}taken{% endif %}">
+            <div class="week-header">
+                <strong>Неделя {{ week.num }}</strong>
+            </div>
+            <div class="week-dates">
+                {{ week.start.strftime('%d.%m') }}<br>
+                {{ week.end.strftime('%d.%m.%Y') }}
+            </div>
+            <div class="week-status">
+                {% if is_past %}
+                <span class="status-past">Просмотр</span>
+                {% elif week.owner %}
+                <span class="status-taken">Занято: {{ week.owner }}</span>
+                {% elif week.num in user_vacations %}
+                <form method="POST" action="{{ url_for('toggle_vacation') }}" class="inline-form">
+                    <input type="hidden" name="year" value="{{ year }}">
+                    <input type="hidden" name="week" value="{{ week.num }}">
+                    <button type="submit" class="btn btn-remove">Снять отпуск</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('toggle_vacation') }}" class="inline-form">
+                    <input type="hidden" name="year" value="{{ year }}">
+                    <input type="hidden" name="week" value="{{ week.num }}">
+                    <button type="submit" class="btn btn-take">Взять отпуск</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
