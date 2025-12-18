@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="auth-container">
-    <h2>Регистрация</h2>
+    <h2 class="form-h2">Регистрация</h2>
     <form method="POST" autocomplete="on">
         {{ form.hidden_tag() }}
         <div class="form-group">
@@ -25,7 +25,7 @@
             <span class="error">{{ error }}</span>
             {% endfor %}
         </div>
-        {{ form.submit(class="btn btn-primary") }}
+        {{ form.submit(class="btn btn-submit btn-primary") }}
     </form>
     <p class="auth-link"><a href="{{ url_for('index') }}">Уже есть аккаунт? Вход</a></p>
 </div>
