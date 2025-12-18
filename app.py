@@ -12,6 +12,20 @@ app.secret_key = 'super_secret_key_change_in_production'
 
 LOGIN_RE = r'^[a-zA-Z0-9!@#$%^&*()]+$'
 
+def short_name(full_name: str) -> str:
+     if not full_name:
+         return ""
+     parts = full_name.split()
+     surname = parts[0]
+     initials = ""
+     if len(parts) >= 2 and parts[1]:
+         initials += parts[1][0].upper() + "."
+     if len(parts) >= 3 and parts[2]:
+         initials += parts[2][0].upper() + "."
+     return f"{surname} {initials}".strip()
+
+app.jinja_env.filters['short_name'] = short_name
+
 @contextmanager
 def get_db():
     conn = sqlite3.connect('vacations.db')

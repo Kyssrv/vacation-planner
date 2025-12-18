@@ -37,7 +37,7 @@
                 <span class="status-past">Просмотр</span>
 
                 {% elif week.owner and (week.num not in user_vacations) %}
-                <span class="status-taken">Занято: {{ week.owner }}</span>
+                <span class="status-taken">Занято: {{ week.owner | short_name }}</span>
 
                 {% elif week.num in user_vacations %}
                 <form method="POST" action="{{ url_for('toggle_vacation') }}" class="inline-form">
