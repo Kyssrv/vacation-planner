@@ -3,34 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noarchive">
     <title>Планировщик отпусков</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="header">
         {% if session.user_id %}
-        <span id="student-info">{{ session.full_name }}</span>
-        {% if session.is_admin %}
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-admin">Админ-панель</a>
-        {% endif %}
-        <a href="{{ url_for('logout') }}" class="btn-logout">Выход</a>
-        {% if not session.is_admin %}
-        <form action="{{ url_for('delete_account') }}" method="post" class="inline delete-form"
-              onsubmit="return confirm('Удалить аккаунт навсегда?')">
-            <button type="submit" class="btn-danger">Удалить аккаунт</button>
-        </form>
-        {% endif %}
+        <div class="user-menu" id="userMenu">
+            <button class="user-menu-btn" id="userMenuBtn" type="button" aria-expanded="false">
+                <span class="user-icon" aria-hidden="true">👤</span>
+                <span class="user-name">{{ session.full_name }}</span>
+                <span class="user-caret" aria-hidden="true">▾</span>
+            </button>
+
+            <div class="user-menu-dropdown" id="userMenuDropdown">
+                <a href="{{ url_for('profile') }}">Профиль</a>
+                {% if session.is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}">Админ-панель</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Выйти</a>
+            </div>
+        </div>
         {% endif %}
     </div>
+
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <div class="flash">
-        {{ messages[0] }}
-    </div>
+    <div class="flash">{{ messages[0] }}</div>
     {% endif %}
     {% endwith %}
 
     {% block content %}{% endblock %}
+
+    <script>
+        (function () {
+            const menu = document.getElementById('userMenu');
+            if (!menu) return;
+
+            const btn = document.getElementById('userMenuBtn');
+
+            function closeMenu() {
+                menu.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = menu.classList.toggle('open');
+                btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!menu.contains(e.target)) closeMenu();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeMenu();
+            });
+        })();
+    </script>
 </body>
 </html>

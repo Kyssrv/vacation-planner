@@ -5,12 +5,12 @@
 
     <div class="admin-section">
         <h2>Добавить пользователя</h2>
-        <form method="POST" class="admin-form">
+        <form method="POST" class="admin-form" autocomplete="on">
             {{ form_user.hidden_tag() }}
             <div class="form-row">
-                {{ form_user.full_name(class="form-input") }}
-                {{ form_user.login(class="form-input") }}
-                {{ form_user.password(class="form-input") }}
+                {{ form_user.full_name(class="form-input", placeholder="ФИО") }}
+                {{ form_user.login(class="form-input", placeholder="Логин") }}
+                {{ form_user.password(class="form-input", placeholder="Пароль", autocomplete="new-password") }}
             </div>
             {{ form_user.submit(class="btn btn-primary") }}
         </form>
@@ -22,8 +22,8 @@
             {{ form_vacation.hidden_tag() }}
             <div class="form-row">
                 {{ form_vacation.user_id(class="form-input") }}
-                {{ form_vacation.year(class="form-input") }}
-                {{ form_vacation.week_num(class="form-input") }}
+                {{ form_vacation.year(class="form-input", placeholder="Год") }}
+                {{ form_vacation.week_num(class="form-input", placeholder="Неделя") }}
             </div>
             {{ form_vacation.submit(class="btn btn-success") }}
         </form>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+    <h2>Профиль</h2>
+
+    <p style="margin-bottom: 12px;">
+        <strong>Логин:</strong> {{ user.login }}
+    </p>
+
+    <form method="POST" autocomplete="on">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.full_name.label(class="form-label") }}
+            {{ form.full_name(class="form-input") }}
+            {% for error in form.full_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.new_password.label(class="form-label") }}
+            {{ form.new_password(class="form-input", autocomplete="new-password") }}
+            {% for error in form.new_password.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+            <small style="display:block;color:#666;margin-top:6px;">
+                Оставьте пустым, если не хотите менять пароль.
+            </small>
+        </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+    <form method="POST" action="{{ url_for('delete_profile') }}" style="margin-top:14px;"
+          onsubmit="return confirm('Точно удалить профиль? Все отпуска тоже удалятся!')">
+        <button type="submit" class="btn btn-danger" style="width:100%;">Удалить профиль</button>
+    </form>
+</div>
+{% endblock %}
