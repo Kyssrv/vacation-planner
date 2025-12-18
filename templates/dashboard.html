@@ -33,14 +33,22 @@
 
     <div class="admin-section">
         <h2 class="form-h2">Пользователи</h2>
-        <table class="admin-table">
+        <table class="admin-table" id="usersTable">
             <tr><th>ID</th><th>ФИО</th><th>Логин</th><th>Админ</th></tr>
             {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.full_name }}</td>
-                <td>{{ user.login }}</td>
-                <td>{{ '✅' if user.is_admin else '' }}</td>
+            <tr class="js-user-row"
+                data-id="{{ user.id }}"
+                data-full_name="{{ user.full_name }}"
+                data-login="{{ user.login }}"
+                data-is_admin="{{ 1 if user.is_admin else 0 }}">
+                <td class="clickable-td">{{ user.id }}</td>
+
+                <td class="clickable-td" data-field="full_name">{{ user.full_name }}</td>
+                <td class="clickable-td" data-field="login">{{ user.login }}</td>
+
+                <td class="clickable-td" data-field="is_admin">
+                    {{ '✅' if user.is_admin else '' }}
+                </td>
             </tr>
             {% endfor %}
         </table>
@@ -58,14 +66,19 @@
 
     <div class="admin-section">
         <h2 class="form-h2">Отпуска</h2>
-        <table class="admin-table">
+        <table class="admin-table" id="vacationsTable">
             <tr><th>ID</th><th>Пользователь</th><th>Год</th><th>Неделя</th></tr>
             {% for vac in vacations %}
-            <tr>
-                <td>{{ vac.id }}</td>
-                <td>{{ vac.full_name }}</td>
-                <td>{{ vac.year }}</td>
-                <td>{{ vac.week_num }}</td>
+            <tr class="js-vac-row"
+                data-id="{{ vac.id }}"
+                data-user_id="{{ vac.user_id }}"
+                data-year="{{ vac.year }}"
+                data-week_num="{{ vac.week_num }}">
+                <td class="clickable-td">{{ vac.id }}</td>
+
+                <td class="clickable-td" data-field="user_id">{{ vac.full_name }}</td>
+                <td class="clickable-td" data-field="year">{{ vac.year }}</td>
+                <td class="clickable-td" data-field="week_num">{{ vac.week_num }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -81,4 +94,215 @@
         </div>
     </div>
 </div>
+
+<div class="modal" id="userCellModal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="userCellTitle">Редактирование</h3>
+            <button type="button" class="modal-close js-modal-close">×</button>
+        </div>
+
+        <form method="POST" id="userCellForm">
+            <div class="modal-body">
+                <input type="hidden" name="field" id="userField">
+                <div class="form-group">
+                    <label class="form-label" id="userFieldLabel"></label>
+                    <input class="form-input" name="value" id="userFieldValue" required>
+                </div>
+
+                <div class="form-group" id="userPasswordGroup" style="display:none;">
+                    <label class="form-label">Новый пароль</label>
+                    <input class="form-input" name="password" id="userNewPassword" type="password" placeholder="Если нужно сменить">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger js-modal-close">Отмена</button>
+                <button type="submit" class="btn btn-success">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="vacCellModal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="vacCellTitle">Редактирование</h3>
+            <button type="button" class="modal-close js-modal-close">×</button>
+        </div>
+
+        <form method="POST" id="vacCellForm">
+            <div class="modal-body">
+                <input type="hidden" name="field" id="vacField">
+
+                <div class="form-group" id="vacSelectGroup" style="display:none;">
+                    <label class="form-label">Пользователь</label>
+                    <select class="form-input" name="value" id="vacUserSelect">
+                        {% for u in form_vacation.user_id.choices %}
+                        <option value="{{ u[0] }}">{{ u[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" id="vacInputGroup">
+                    <label class="form-label" id="vacFieldLabel"></label>
+                    <input class="form-input" name="value" id="vacFieldValue" required>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger js-modal-close">Отмена</button>
+                <button type="submit" class="btn btn-success">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const userModal = document.getElementById('userCellModal');
+        const vacModal = document.getElementById('vacCellModal');
+
+        function openModal(modal) {
+            modal.classList.add('visible');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+        function closeModal(modal) {
+            modal.classList.remove('visible');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.querySelectorAll('.js-modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (userModal) closeModal(userModal);
+                if (vacModal) closeModal(vacModal);
+            });
+        });
+        document.querySelectorAll('.modal-backdrop').forEach(b => {
+            b.addEventListener('click', (e) => {
+                const modal = e.target.closest('.modal');
+                if (modal) closeModal(modal);
+            });
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (userModal) closeModal(userModal);
+                if (vacModal) closeModal(vacModal);
+            }
+        });
+
+        function pagesQS() {
+            const qs = new URLSearchParams(window.location.search);
+            const u = qs.get('u_page') || '1';
+            const v = qs.get('v_page') || '1';
+            return `u_page=${encodeURIComponent(u)}&v_page=${encodeURIComponent(v)}`;
+        }
+
+        const usersTable = document.getElementById('usersTable');
+        if (usersTable) {
+            usersTable.addEventListener('click', (e) => {
+                const td = e.target.closest('td[data-field]');
+                if (!td) return;
+
+                const tr = td.closest('tr.js-user-row');
+                if (!tr) return;
+
+                const userId = tr.dataset.id;
+                const field = td.dataset.field;
+
+                const title = document.getElementById('userCellTitle');
+                const label = document.getElementById('userFieldLabel');
+                const fieldInp = document.getElementById('userField');
+                const valueInp = document.getElementById('userFieldValue');
+
+                const pwdGroup = document.getElementById('userPasswordGroup');
+                const pwdInp = document.getElementById('userNewPassword');
+                pwdGroup.style.display = 'none';
+                pwdInp.value = '';
+
+                fieldInp.value = field;
+
+                if (field === 'full_name') {
+                    title.textContent = `Изменить ФИО (ID ${userId})`;
+                    label.textContent = 'ФИО';
+                    valueInp.value = tr.dataset.full_name || '';
+                } else if (field === 'login') {
+                    title.textContent = `Изменить логин (ID ${userId})`;
+                    label.textContent = 'Логин';
+                    valueInp.value = tr.dataset.login || '';
+                } else if (field === 'is_admin') {
+                    title.textContent = `Изменить админ-права (ID ${userId})`;
+                    label.textContent = 'Админ (0 или 1)';
+                    valueInp.value = tr.dataset.is_admin || '0';
+                } else {
+                    return;
+                }
+
+                document.getElementById('userCellForm').action =
+                    `/admin/users/${userId}/update_cell?${pagesQS()}`;
+
+                openModal(userModal);
+            });
+        }
+
+        const vacTable = document.getElementById('vacationsTable');
+        if (vacTable) {
+            vacTable.addEventListener('click', (e) => {
+                const td = e.target.closest('td[data-field]');
+                if (!td) return;
+
+                const tr = td.closest('tr.js-vac-row');
+                if (!tr) return;
+
+                const vacId = tr.dataset.id;
+                const field = td.dataset.field;
+
+                document.getElementById('vacField').value = field;
+
+                const title = document.getElementById('vacCellTitle');
+                const label = document.getElementById('vacFieldLabel');
+
+                const selectGroup = document.getElementById('vacSelectGroup');
+                const inputGroup = document.getElementById('vacInputGroup');
+
+                const userSelect = document.getElementById('vacUserSelect');
+                const valueInp = document.getElementById('vacFieldValue');
+
+                selectGroup.style.display = 'none';
+                inputGroup.style.display = 'block';
+
+                if (field === 'user_id') {
+                    title.textContent = `Изменить пользователя (отпуск ID ${vacId})`;
+                    selectGroup.style.display = 'block';
+                    inputGroup.style.display = 'none';
+                    userSelect.value = tr.dataset.user_id || '0';
+                } else if (field === 'year') {
+                    title.textContent = `Изменить год (отпуск ID ${vacId})`;
+                    label.textContent = 'Год';
+                    valueInp.type = 'number';
+                    valueInp.min = '2000';
+                    valueInp.max = '2100';
+                    valueInp.value = tr.dataset.year || '';
+                } else if (field === 'week_num') {
+                    title.textContent = `Изменить неделю (отпуск ID ${vacId})`;
+                    label.textContent = 'Неделя';
+                    valueInp.type = 'number';
+                    valueInp.min = '1';
+                    valueInp.max = '52';
+                    valueInp.value = tr.dataset.week_num || '';
+                } else {
+                    return;
+                }
+
+                document.getElementById('vacCellForm').action =
+                    `/admin/vacations/${vacId}/update_cell?${pagesQS()}`;
+
+                openModal(vacModal);
+            });
+        }
+    })();
+</script>
+
 {% endblock %}

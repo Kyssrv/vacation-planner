@@ -174,8 +174,8 @@ def admin_dashboard():
         flash('Доступ только для администратора')
         return redirect(url_for('index'))
 
-    USERS_PER_PAGE = 8
-    VACS_PER_PAGE = 8
+    USERS_PER_PAGE = 10
+    VACS_PER_PAGE = 10
 
     try:
         u_page = int(request.args.get('u_page', 1))
@@ -259,6 +259,76 @@ def admin_dashboard():
         u_page=u_page, u_pages=u_pages,
         v_page=v_page, v_pages=v_pages
     )
+
+@app.route('/admin/users/<int:user_id>/update_cell', methods=['POST'])
+def admin_update_user_cell(user_id: int):
+    if not session.get('is_admin'):
+        return redirect(url_for('index'))
+
+    field = request.form.get('field', '')
+    value = (request.form.get('value', '') or '').strip()
+
+    if field not in {'full_name', 'login', 'is_admin'}:
+        flash('Нельзя редактировать это поле')
+        return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+    if field in {'full_name', 'login'} and not value:
+        flash('Поле не может быть пустым')
+        return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+    with get_db() as conn:
+        try:
+            if field == 'is_admin':
+                v = 1 if value == '1' else 0
+                conn.execute('UPDATE users SET is_admin = ? WHERE id = ?', (v, user_id))
+            else:
+                conn.execute(f'UPDATE users SET {field} = ? WHERE id = ?', (value, user_id))
+        except sqlite3.IntegrityError:
+            flash('Логин уже занят')
+            return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+    flash('Сохранено')
+    return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+
+@app.route('/admin/vacations/<int:vac_id>/update_cell', methods=['POST'])
+def admin_update_vacation_cell(vac_id: int):
+    if not session.get('is_admin'):
+        return redirect(url_for('index'))
+
+    field = request.form.get('field', '')
+    value = (request.form.get('value', '') or '').strip()
+
+    if field not in {'user_id', 'year', 'week_num'}:
+        flash('Нельзя редактировать это поле')
+        return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+    try:
+        if field == 'user_id':
+            new_val = int(value)
+            if new_val <= 0:
+                raise ValueError
+        elif field == 'year':
+            new_val = int(value)
+            if not (2000 <= new_val <= 2100):
+                raise ValueError
+        else:
+            new_val = int(value)
+            if not (1 <= new_val <= 52):
+                raise ValueError
+    except ValueError:
+        flash('Некорректное значение')
+        return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+    with get_db() as conn:
+        try:
+            conn.execute(f'UPDATE vacations SET {field} = ? WHERE id = ?', (new_val, vac_id))
+        except sqlite3.IntegrityError:
+            flash('Неделя уже занята')
+            return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
+
+    flash('Сохранено')
+    return redirect(url_for('admin_dashboard', u_page=request.args.get('u_page', 1), v_page=request.args.get('v_page', 1)))
 
 @app.route('/calendar')
 def calendar():
